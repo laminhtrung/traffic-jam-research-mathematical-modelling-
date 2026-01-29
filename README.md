@@ -61,21 +61,6 @@ traffic-jam-research-mathematical-modelling-/
 └─ requirements.txt
 ```
 
-### Proposed clean structure (optional)
-> TODO: Not yet in repo. Use this as a target layout if you decide to refactor.
-```
-traffic-jam-research-mathematical-modelling-/
-├─ configs/
-├─ src/
-├─ scripts/
-├─ data/
-├─ runs/
-├─ notebooks/
-├─ assets/
-├─ requirements.txt
-└─ README.md
-```
-
 ---
 
 ## Installation
@@ -189,25 +174,6 @@ python run.py --fig 10 --rho_min 0.18 --rho_max 0.35 --rho_steps 18 \
 
 ---
 
-## Citation
-**How to cite:** If you use this repository in academic work, cite it and include the specific commit hash.
-
-```bibtex
-@software{traffic_jam_ovm_2026,
-  title        = {Traffic-Jam Research — Mathematical Modelling (OVM with Slowdown Sections)},
-  author       = {La Minh Trung},
-  year         = {2026},
-  url          = {TODO: repository URL},
-  version      = {TODO: commit hash or tag}
-}
-```
-
----
-
-## License
-TODO: Add a license file (e.g., MIT, BSD-3-Clause, Apache-2.0).
-
----
 
 ## Contact / Maintainer
 **Lã Minh Trung**
