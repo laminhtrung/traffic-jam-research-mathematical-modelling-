@@ -1,13 +1,13 @@
 # Traffic-Jam Research — Mathematical Modelling (OVM with Slowdown Sections)
 
-**Abstract.** This repository provides a reproducible research pipeline for studying traffic jam formation using the Optimal Velocity Model (OVM) with slowdown sections. It supports simulations across densities, measures current \(J\) vs. density \(p\), analyzes spatial structure (velocity/headway vs. position), estimates jam length ratios, and compares simulation results with theoretical curves. The workflow targets students and researchers who need reliable experiments and publication-ready figures.
+**Abstract.** This repository provides a reproducible pipeline for studying traffic jam formation with the Optimal Velocity Model (OVM) and slowdown sections. It supports fundamental-diagram analysis (current \(J\) vs density \(\rho\)), spatial profiles of headway/velocity, jam-length ratios in normal sections, and comparisons between simulation and theoretical curves. It is designed for students and researchers who need reproducible experiments and publication-ready figures.
 
 ---
 
 ## Table of Contents
 - [Scientific Background](#scientific-background)
 - [Reproducible Pipeline](#reproducible-pipeline)
-- [Proposed Folder Structure](#proposed-folder-structure)
+- [Repository Structure](#repository-structure)
 - [Installation](#installation)
 - [Quickstart](#quickstart)
 - [Configuration](#configuration)
@@ -21,51 +21,60 @@
 ---
 
 ## Scientific Background
-- **Optimal Velocity Model (OVM):** A car-following model where each vehicle accelerates toward an “optimal” speed based on its headway (distance to the vehicle ahead).
-- **Slowdown sections:** Road segments with reduced desired speed to model bottlenecks or road conditions. These can trigger stop-and-go waves and jams.
-- **Density \(p\):** Vehicle density on the ring road (vehicles per unit length). Increasing \(p\) can push the system from free flow to congested regimes.
-- **Current \(J\):** Flow rate (vehicles per unit time). The \(J\)–\(p\) relationship (fundamental diagram) reveals phase transitions and capacity drops.
+- **Optimal Velocity Model (OVM):** A car-following model where each vehicle accelerates toward an “optimal” speed based on headway (distance to the vehicle ahead).
+- **Slowdown sections:** Road segments with reduced desired speed, modeling bottlenecks or road conditions that can trigger stop-and-go waves.
+- **Density \(\rho\):** Vehicles per unit road length on a ring road. Increasing \(\rho\) can drive transitions from free flow to congestion.
+- **Current \(J\):** Flow rate (vehicles per unit time). The \(J\)–\(\rho\) curve reveals capacity limits and phase transitions.
 
-No heavy equations are required for interpretation; this repository focuses on intuitive, reproducible analysis.
+This repo focuses on intuitive interpretation and reproducible figure generation rather than heavy derivations.
 
 ---
 
 ## Reproducible Pipeline
-1) **Simulate** OVM with configurable slowdown sections  
-2) **Aggregate metrics** (current \(J\), mean speed, jam length ratio, etc.)  
-3) **Plot** figures (PNG, optional MP4)  
-4) **Export** runs to `/runs` with logs and metadata  
+1) **Simulate** OVM dynamics on a ring road with slowdown sections  
+2) **Aggregate metrics** (mean speed, current \(J\), jam ratios)  
+3) **Plot** figures (PNG)  
+4) **Export** outputs to a user-specified path  
 
 ---
 
-## Proposed Folder Structure
-If your current repo is flat, consider migrating to the following structure for clarity and reproducibility:
+## Repository Structure
 
+### Current structure
+```
+traffic-jam-research-mathematical-modelling-/
+├─ experiments/
+│  ├─ fig2_fundamental.py
+│  ├─ fig3_profile.py
+│  ├─ fig4_9_theory_current.py
+│  ├─ fig5_jam_ratio_equal.py
+│  ├─ fig6_jam_ratio_unequal.py
+│  ├─ fig7_various_layouts.py
+│  ├─ fig8_strongest_slowdown.py
+│  └─ fig10_three_slowdowns.py
+├─ config.py
+├─ metrics.py
+├─ model_ovm.py
+├─ road.py
+├─ run.py
+├─ sim.py
+└─ requirements.txt
+```
+
+### Proposed clean structure (optional)
+> TODO: Not yet in repo. Use this as a target layout if you decide to refactor.
 ```
 traffic-jam-research-mathematical-modelling-/
 ├─ configs/
-│  ├─ fig2.yaml
-│  ├─ fig3.yaml
-│  ├─ fig10.yaml
-│  └─ sweep.yaml
 ├─ src/
-│  ├─ model_ovm.py
-│  ├─ sim.py
-│  ├─ metrics.py
-│  └─ road.py
 ├─ scripts/
-│  ├─ run_sim.py
-│  ├─ sweep_density.py
-│  └─ plot_results.py
-├─ data/                     # optional input datasets
-├─ runs/                     # experiment outputs
-├─ notebooks/                # exploratory analysis
-├─ assets/                   # figures for README/papers
+├─ data/
+├─ runs/
+├─ notebooks/
+├─ assets/
 ├─ requirements.txt
 └─ README.md
 ```
-
-> TODO: If your repo does not yet contain `configs/` or `scripts/`, create them or adapt the commands below to existing entry points (e.g., `run.py`).
 
 ---
 
@@ -81,114 +90,107 @@ pip install -r requirements.txt
 ---
 
 ## Quickstart
-Copy-paste examples (update paths if your scripts differ):
 
+### Run a single experiment
 ```bash
-# Run a single experiment (e.g., Fig 2 config)
-python scripts/run_sim.py --config configs/fig2.yaml
-
-# Sweep density p values and collect J vs p
-python scripts/sweep_density.py --config configs/sweep.yaml
-
-# Plot results from a specific run directory
-python scripts/plot_results.py --run runs/exp_001
+python run.py --fig 3 --rho 0.25 --vs 1.0 \
+  --out_headway fig3_headway.png \
+  --out_velocity fig3_velocity.png
 ```
 
-> TODO: If `scripts/` does not exist, use the equivalent entry points (e.g., `python run.py`) and adjust arguments accordingly.
+### Sweep density \(\rho\) values (fundamental diagram)
+```bash
+python run.py --fig 2 --rho_min 0.02 --rho_max 0.80 --rho_steps 60 \
+  --vs 1.0 --out fig2_current_vs_density.png
+```
+
+### Generate Fig 10-style jam-length ratios (three slowdowns)
+```bash
+python run.py --fig 10 --rho_min 0.18 --rho_max 0.35 --rho_steps 18 \
+  --vs 1.0 --out_a fig10a_jam_ratio.png --out_b fig10b_jam_ratio.png
+```
+
+### Export results to a `/runs` directory
+```bash
+mkdir -p runs
+python run.py --fig 2 --rho_min 0.02 --rho_max 0.80 --rho_steps 60 \
+  --vs 1.0 --out runs/fig2_current_vs_density.png
+```
 
 ---
 
 ## Configuration
-Example YAML (extend as needed):
+This project is configured via the `SimCfg` dataclass in `config.py`, with CLI overrides in `run.py`.
 
-```yaml
-# configs/fig2.yaml
-road_length: 4000           # total length of ring road
-num_vehicles: 200           # N
-sensitivity_a: 1.0          # response rate
-vmax: 2.0                   # max speed in normal sections
+**Defaults (from `config.py`):**
+- `N` (vehicles)
+- `a_sens` (sensitivity)
+- `vf_max` (normal-section max speed)
+- `alpha_ov`, `x_f_c`, `x_s_c` (OVM parameters)
+- `dt`, `t_warmup`, `t_total`, `sample_every`
+- `dx_threshold` (jam detection)
+- `seed`
 
-# Slowdown sections
-slowdown_lengths:
-  LN: 200                   # length of normal section before slowdown
-  LS: 200                   # length of slowdown section
-vs_max: 0.5                 # max speed in slowdown section
-
-# Simulation controls
-dt: 0.1                     # timestep
-steps: 50000                # number of integration steps
-seed: 42                    # RNG seed for reproducibility
+**Override examples (CLI):**
+```bash
+python run.py --fig 2 --N 400 --a_sens 2.0 --vf_max 2.2 --dt 0.0078125
 ```
+
+> TODO: YAML-based configuration is not implemented yet. If needed, add a config loader and pass values into `SimCfg`.
 
 ---
 
 ## Inputs & Outputs
 
 ### Inputs
-- **Config YAML** (see above)  
-  Contains road length, number of vehicles, OVM parameters, slowdown parameters, and simulation settings.
+- **CLI arguments** to `run.py` select figures and override parameters.
+- **Simulation parameters** are defined in `config.py`.
 
 ### Outputs
-- **Metrics**: JSON/CSV logs with run metadata and aggregated statistics.
-  Example schema (fields may vary; extend as needed):
-  ```json
-  {
-    "run_id": "exp_001",
-    "density_p": 0.05,
-    "current_J": 0.12,
-    "mean_speed": 1.25,
-    "jam_length_ratio": 0.18,
-    "seed": 42,
-    "steps": 50000
-  }
-  ```
+- **Figures (PNG)** saved to user-specified paths:
+  - Fig 2: `--out` (default: `fig2_current_vs_density.png`)
+  - Fig 3: `--out_headway`, `--out_velocity`
+  - Fig 10: `--out_a`, `--out_b`
 
-- **Plots (PNG)**:
-  - `fig2_J_vs_p.png`
-  - `fig3_spatial_structure.png`
-  - `fig10_jam_length_vs_sections.png`
-- **Optional videos (MP4)**:
-  - `traj_exp_001.mp4`
-
-> TODO: Align filenames with your plotting scripts if they differ.
+> TODO: Structured logs (JSON/CSV) are not currently emitted. Add logging if you need machine-readable results for downstream analysis.
 
 ---
 
 ## Reproducing Results
 
-### Fig 2 — Current \(J\) vs Density \(p\)
+### Fig 2 — Current \(J\) vs Density \(\rho\)
 ```bash
-python scripts/sweep_density.py --config configs/sweep.yaml
-python scripts/plot_results.py --run runs/exp_sweep
+python run.py --fig 2 --rho_min 0.02 --rho_max 0.80 --rho_steps 60 \
+  --vs 1.0 --out fig2_current_vs_density.png
 ```
 
-### Fig 3 — Spatial Structure (velocity/headway vs position)
+### Fig 3 — Spatial structure (headway/velocity vs position)
 ```bash
-python scripts/run_sim.py --config configs/fig3.yaml
-python scripts/plot_results.py --run runs/exp_fig3
+python run.py --fig 3 --rho 0.25 --vs 1.0 \
+  --out_headway fig3_headway.png \
+  --out_velocity fig3_velocity.png
 ```
 
-### Fig 10 — Three Slowdown Sections + Jam Length Ratio
+### Fig 10 — Three slowdown sections + jam-length ratios
 ```bash
-python scripts/run_sim.py --config configs/fig10.yaml
-python scripts/plot_results.py --run runs/exp_fig10
+python run.py --fig 10 --rho_min 0.18 --rho_max 0.35 --rho_steps 18 \
+  --vs 1.0 --out_a fig10a_jam_ratio.png --out_b fig10b_jam_ratio.png
 ```
 
 ---
 
 ## Troubleshooting
 - **Numerical instability / exploding speeds**
-  - Reduce `dt` (time step).
-  - Ensure `sensitivity_a` and `vmax` are within stable regimes.
+  - Reduce `dt`.
+  - Keep `a_sens` and `vf_max` within stable regimes.
 - **Performance**
-  - Prefer vectorized operations in core loops.
-  - Reduce `steps` or downsample logging for long sweeps.
+  - Reduce `t_total` or increase `sample_every`.
+  - Prefer GPU (`--device cuda`) if you have CUDA available; otherwise CPU is fine.
 
 ---
 
 ## Citation
-**How to cite:**  
-If you use this repository in academic work, please cite it as below and include the specific commit hash.
+**How to cite:** If you use this repository in academic work, cite it and include the specific commit hash.
 
 ```bibtex
 @software{traffic_jam_ovm_2026,
