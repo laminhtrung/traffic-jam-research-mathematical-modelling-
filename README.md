@@ -1,179 +1,119 @@
 # Traffic-Jam Research — Mathematical Modelling (OVM with Slowdown Sections)
 
-**Abstract.** This repository provides a reproducible pipeline for studying traffic jam formation with the Optimal Velocity Model (OVM) and slowdown sections. It supports fundamental-diagram analysis (current \(J\) vs density \(\rho\)), spatial profiles of headway/velocity, jam-length ratios in normal sections, and comparisons between simulation and theoretical curves. It is designed for students and researchers who need reproducible experiments and publication-ready figures.
+Basic simulation code for traffic-jam formation using the Optimal Velocity Model (OVM) on a ring road with slowdown sections. The repository generates figure-style outputs (PNG) for fundamental diagrams, spatial profiles, and jam-length ratios, following experiments in the `experiments/` folder.
 
----
-
-## Table of Contents
-- [Scientific Background](#scientific-background)
-- [Reproducible Pipeline](#reproducible-pipeline)
-- [Repository Structure](#repository-structure)
-- [Installation](#installation)
+## Contents
+- [Overview](#overview)
+- [Requirements](#requirements)
+- [Project Structure](#project-structure)
 - [Quickstart](#quickstart)
-- [Configuration](#configuration)
-- [Inputs & Outputs](#inputs--outputs)
-- [Reproducing Results](#reproducing-results)
+- [Experiments (Fig 2–10)](#experiments-fig-210)
+- [Key Parameters](#key-parameters)
+- [Outputs](#outputs)
 - [Troubleshooting](#troubleshooting)
-- [Citation](#citation)
 - [License](#license)
-- [Contact / Maintainer](#contact--maintainer)
+- [Maintainer](#maintainer)
 
----
+## Overview
+This project simulates OVM dynamics with piecewise road segments:
+- **Normal sections (N)** with max speed `vf_max`
+- **Slowdown sections (S)** with lower max speed `vs`
 
-## Scientific Background
-- **Optimal Velocity Model (OVM):** A car-following model where each vehicle accelerates toward an “optimal” speed based on headway (distance to the vehicle ahead).
-- **Slowdown sections:** Road segments with reduced desired speed, modeling bottlenecks or road conditions that can trigger stop-and-go waves.
-- **Density \(\rho\):** Vehicles per unit road length on a ring road. Increasing \(\rho\) can drive transitions from free flow to congestion.
-- **Current \(J\):** Flow rate (vehicles per unit time). The \(J\)–\(\rho\) curve reveals capacity limits and phase transitions.
+It supports:
+- Fundamental diagram: current `J` vs density `rho` (Fig 2)
+- Spatial headway/velocity profiles (Fig 3, Fig 6, Fig 8)
+- Jam-length ratios across layouts (Fig 5–8, Fig 10)
+- Theoretical current curves (Fig 4, Fig 9)
 
-This repo focuses on intuitive interpretation and reproducible figure generation rather than heavy derivations.
+## Requirements
+- Ubuntu 22.04 (tested target)
+- Python 3.10+ recommended
+- Python packages: `numpy`, `matplotlib`, `tqdm`
 
----
-
-## Reproducible Pipeline
-1) **Simulate** OVM dynamics on a ring road with slowdown sections  
-2) **Aggregate metrics** (mean speed, current \(J\), jam ratios)  
-3) **Plot** figures (PNG)  
-4) **Export** outputs to a user-specified path  
-
----
-
-## Repository Structure
-
-### Current structure
-```
-traffic-jam-research-mathematical-modelling-/
-├─ experiments/
-│  ├─ fig2_fundamental.py
-│  ├─ fig3_profile.py
-│  ├─ fig4_9_theory_current.py
-│  ├─ fig5_jam_ratio_equal.py
-│  ├─ fig6_jam_ratio_unequal.py
-│  ├─ fig7_various_layouts.py
-│  ├─ fig8_strongest_slowdown.py
-│  └─ fig10_three_slowdowns.py
-├─ config.py
-├─ metrics.py
-├─ model_ovm.py
-├─ road.py
-├─ run.py
-├─ sim.py
-└─ requirements.txt
-```
-
----
-
-## Installation
-Ubuntu 22.04, Python 3.10+ recommended.
-
+Install dependencies:
 ```bash
-conda create -n ovm-traffic python=3.10 -y
-conda activate ovm-traffic
 pip install -r requirements.txt
 ```
 
----
-
-## Quickstart
-
-### Run a single experiment
-```bash
-python run.py --fig 3 --rho 0.25 --vs 1.0 \
-  --out_headway fig3_headway.png \
-  --out_velocity fig3_velocity.png
+## Project Structure
+```
+.
+├─ run.py                  # CLI entry point for figure experiments
+├─ config.py               # SimCfg default parameters
+├─ sim.py                  # OVM time integration (RK4)
+├─ model_ovm.py            # optimal velocity function
+├─ road.py                 # road and segment definitions
+├─ metrics.py              # jam-length utilities (optional)
+├─ experiments/            # Fig 2–10 experiment scripts
+└─ bash/                   # helper scripts to reproduce figures
 ```
 
-### Sweep density \(\rho\) values (fundamental diagram)
+## Quickstart
+Run a single figure experiment directly:
+```bash
+python run.py --fig 3 --rho 0.25 --vs 1.0 \
+  --out_headway fig3_headway_profile.png \
+  --out_velocity fig3_velocity_profile.png
+```
+
+Fundamental diagram sweep (Fig 2):
 ```bash
 python run.py --fig 2 --rho_min 0.02 --rho_max 0.80 --rho_steps 60 \
   --vs 1.0 --out fig2_current_vs_density.png
 ```
 
-### Generate Fig 10-style jam-length ratios (three slowdowns)
+## Experiments (Fig 2–10)
+The main entry point is `run.py` with `--fig` arguments. Available figures:
+
+- `--fig 2` Fundamental diagram (simulation + theory)
+- `--fig 3` Headway and velocity profiles (spatial structure)
+- `--fig 4` Theoretical current curves (multiple `vmax`)
+- `--fig 5` Jam-length ratio with two equal slowdowns
+- `--fig 6` Unequal slowdown lengths (profile + ratio)
+- `--fig 7` Alternative layouts (ratio)
+- `--fig 8` Strongest slowdown study (profiles + ratio)
+- `--fig 9` Theoretical saturated current
+- `--fig 10` Three slowdown sections (equal/unequal)
+
+Example using the helper scripts in `bash/` (GPU optional):
 ```bash
-python run.py --fig 10 --rho_min 0.18 --rho_max 0.35 --rho_steps 18 \
-  --vs 1.0 --out_a fig10a_jam_ratio.png --out_b fig10b_jam_ratio.png
+cd bash
+./fig2.sh          # Fig 2: current vs density
+./fig3.sh          # Fig 3: headway + velocity profiles
+./fig10.sh         # Fig 10: jam-length ratios
 ```
 
-### Export results to a `/runs` directory
-```bash
-mkdir -p runs
-python run.py --fig 2 --rho_min 0.02 --rho_max 0.80 --rho_steps 60 \
-  --vs 1.0 --out runs/fig2_current_vs_density.png
-```
+## Key Parameters
+Defaults are defined in `config.py` (`SimCfg`), and can be overridden via CLI:
 
----
-
-## Configuration
-This project is configured via the `SimCfg` dataclass in `config.py`, with CLI overrides in `run.py`.
-
-**Defaults (from `config.py`):**
-- `N` (vehicles)
-- `a_sens` (sensitivity)
-- `vf_max` (normal-section max speed)
-- `alpha_ov`, `x_f_c`, `x_s_c` (OVM parameters)
+- `N`: number of vehicles
+- `a_sens`: sensitivity in dv/dt = a(V - v)
+- `vf_max`: max speed in normal sections
+- `alpha_ov`, `x_f_c`, `x_s_c`: OVM parameters
 - `dt`, `t_warmup`, `t_total`, `sample_every`
-- `dx_threshold` (jam detection)
-- `seed`
+- `dx_threshold`: jam detection threshold
+- `rho`, `vs`, `vs1`, `vs2`: density and slowdown speeds
 
-**Override examples (CLI):**
+Example overrides:
 ```bash
 python run.py --fig 2 --N 400 --a_sens 2.0 --vf_max 2.2 --dt 0.0078125
 ```
 
-> TODO: YAML-based configuration is not implemented yet. If needed, add a config loader and pass values into `SimCfg`.
+## Outputs
+Outputs are PNG files saved to the paths you pass via CLI, e.g.:
+- `fig2_current_vs_density.png`
+- `fig3_headway_profile.png`
+- `fig3_velocity_profile.png`
+- `fig10a_jam_ratio.png`, `fig10b_jam_ratio.png`
 
----
-
-## Inputs & Outputs
-
-### Inputs
-- **CLI arguments** to `run.py` select figures and override parameters.
-- **Simulation parameters** are defined in `config.py`.
-
-### Outputs
-- **Figures (PNG)** saved to user-specified paths:
-  - Fig 2: `--out` (default: `fig2_current_vs_density.png`)
-  - Fig 3: `--out_headway`, `--out_velocity`
-  - Fig 10: `--out_a`, `--out_b`
-
-> TODO: Structured logs (JSON/CSV) are not currently emitted. Add logging if you need machine-readable results for downstream analysis.
-
----
-
-## Reproducing Results
-
-### Fig 2 — Current \(J\) vs Density \(\rho\)
-```bash
-python run.py --fig 2 --rho_min 0.02 --rho_max 0.80 --rho_steps 60 \
-  --vs 1.0 --out fig2_current_vs_density.png
-```
-
-### Fig 3 — Spatial structure (headway/velocity vs position)
-```bash
-python run.py --fig 3 --rho 0.25 --vs 1.0 \
-  --out_headway fig3_headway.png \
-  --out_velocity fig3_velocity.png
-```
-
-### Fig 10 — Three slowdown sections + jam-length ratios
-```bash
-python run.py --fig 10 --rho_min 0.18 --rho_max 0.35 --rho_steps 18 \
-  --vs 1.0 --out_a fig10a_jam_ratio.png --out_b fig10b_jam_ratio.png
-```
-
----
+No structured logs (JSON/CSV) are emitted by default.
 
 ## Troubleshooting
-- **Numerical instability / exploding speeds**
-  - Reduce `dt`.
-  - Keep `a_sens` and `vf_max` within stable regimes.
-- **Performance**
-  - Reduce `t_total` or increase `sample_every`.
-  - Prefer GPU (`--device cuda`) if you have CUDA available; otherwise CPU is fine.
+- **Numerical instability:** reduce `dt` and/or `a_sens`
+- **Slow runs:** lower `t_total`, increase `sample_every`, or use GPU (`--device cuda:0`)
 
----
+## License
+TODO: add a license file.
 
-
-## Contact / Maintainer
-**Lã Minh Trung**
+## Maintainer
+Lã Minh Trung
