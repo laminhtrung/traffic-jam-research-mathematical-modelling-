@@ -106,14 +106,5 @@ Outputs are PNG files saved to the paths you pass via CLI, e.g.:
 - `fig3_velocity_profile.png`
 - `fig10a_jam_ratio.png`, `fig10b_jam_ratio.png`
 
-No structured logs (JSON/CSV) are emitted by default.
-
-## Troubleshooting
-- **Numerical instability:** reduce `dt` and/or `a_sens`
-- **Slow runs:** lower `t_total`, increase `sample_every`, or use GPU (`--device cuda:0`)
-
-## License
-TODO: add a license file.
-
 ## Maintainer
 Lã Minh Trung
